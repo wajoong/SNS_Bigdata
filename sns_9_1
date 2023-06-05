@@ -1,0 +1,43 @@
+from bs4 import BeautifulSoup     
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
+import sys  # sys 모듈 임포트 추가
+
+keyword = "동서대학교"
+
+path = "C:/Users/UIT801-/Desktop/chromedriver.exe"
+driver = webdriver.Chrome(path)
+
+driver.get("https://www.naver.com")
+time.sleep(2)
+
+search_bar = driver.find_element(By.ID,"query")
+search_bar.send_keys(keyword)
+
+driver.find_element(By.ID,'search-btn').click()
+time.sleep(2)
+
+driver.find_element(By.LINK_TEXT,'VIEW').click()
+time.sleep(2)
+
+driver.find_element(By.LINK_TEXT,'블로그').click()
+time.sleep(2)
+
+full_html = driver.page_source 
+soup = BeautifulSoup(full_html, 'html.parser')
+getlist = soup.find('ul', class_='lst_total')
+
+file_name = r"C:\Users\UIT801-\Desktop\3학년 1학기\SNS빅데이터\ch_11.txt"
+original_stdout = sys.stdout
+f = open(file_name, 'a', encoding='UTF-8')
+sys.stdout = f
+time.sleep(2)
+
+
+for i in getlist:
+    f.write(str(i.text.strip())+"\n")
+    print("\n")
+    
+    sys.stdout = original_stdout
+f.close()
