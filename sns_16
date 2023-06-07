@@ -1,0 +1,60 @@
+from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+import urllib.request
+import urllib
+import time
+import sys
+import re
+import math
+import os
+import random
+
+# 크롤링할 정보 입력
+search_keyword = "풍경"
+cnt = 5
+image_dir = "C:\\Users\\UIT801-\\Desktop\\3학년 1학기\\SNS빅데이터\\sns_13주차\\"
+
+# 크롬 드라이버 경로 설정
+driver_path = r"C:/Users/UIT801-/Desktop/chromedriver.exe"
+driver = webdriver.Chrome(driver_path)
+
+driver.get("https://www.google.com/imghp")
+time.sleep(2)
+
+element = driver.find_element(By.NAME, "q")
+element.send_keys(search_keyword)
+element.send_keys(Keys.RETURN)
+
+scroll_pause_time = 2
+last_height = driver.execute_script("return document.body.scrollHeight")
+
+while True:
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    time.sleep(scroll_pause_time)
+    new_height = driver.execute_script("return document.body.scrollHeight")
+    if new_height == last_height:
+        break
+    last_height = new_height
+
+soup = BeautifulSoup(driver.page_source, "html.parser")
+images = soup.find_all("img", class_="rg_i")
+
+image_urls = []
+for img in images:
+    url = img.get("src")
+    if url and url.startswith("http"):
+        image_urls.append(url)
+
+selected_urls = random.sample(image_urls, min(cnt, len(image_urls)))
+
+os.makedirs(image_dir, exist_ok=True)
+
+for i, url in enumerate(selected_urls):
+    file_name = str(i + 1) + ".jpg"
+    file_path = os.path.join(image_dir, file_name)
+    urllib.request.urlretrieve(url, file_path)
+    print("다운로드 완료:", file_path)
+
+driver.quit()
