@@ -1,0 +1,89 @@
+# 모듈, 라이브러리
+from bs4 import BeautifulSoup
+from selenium import webdriver
+import time
+import pandas as pd  
+import xlwt
+
+# 검색 조건
+query = "여름여행 +국내 -해외"
+con4 = 28
+con5 = "20170101"
+con6 = "20170531"
+ff_name = r"C:/Users/UIT801-/Desktop/3학년 1학기/SNS빅데이터/sns_13주차//sns13.txt"
+fc_name = r"C:/Users/UIT801-/Desktop/3학년 1학기/SNS빅데이터/sns_13주차//sns13.csv"
+fx_name = r"C:/Users/UIT801-/Desktop/3학년 1학기/SNS빅데이터/sns_13주차//sns13.xlsx"
+
+driver_path = "C:/Users/UIT801-/Desktop/chromedriver.exe"
+driver = webdriver.Chrome(executable_path=driver_path)
+
+base_url = "https://search.naver.com/search.naver?where=blog&query="+query+"&sm=tab_opt&nso=so:r,p:from"+con5+"to"+con6
+
+driver.get(base_url)
+time.sleep(2)
+
+# 블로그 내용 추출
+num = 1
+num2 = [ ]
+title2 = [ ]
+cont2 = [ ]
+nick2 = [ ]
+site2 = [ ]
+
+full_html = driver.page_source
+soup = BeautifulSoup(full_html,'html.parser')
+content_list = soup.find('ul', class_="lst_total")
+
+count = 0
+for i in content_list.find_all('li', "bx"):
+    num2.append(num)
+    print('번호:',num)
+    num += 1
+
+    title = i.find('a', 'api_txt_lines total_tit').get_text()
+    title2.append(title)
+    print('제목:', title.strip())
+
+    cont = i.find('div', 'api_txt_lines dsc_txt').get_text()
+    cont2.append(cont)
+    print('내용:', cont.strip())
+
+    nick = i.find('a', 'sub_txt sub_name').get_text()
+    nick2.append(nick)
+    print('닉네임:', nick.strip())
+
+    site = i.find('a').get('data-url')
+    site2.append(site)
+    print('사이트:', site.strip())
+    print('\n')
+
+
+    count += 1
+    if count >= con4:
+        break
+
+df = pd.DataFrame()
+
+df['번호'] = num2
+df['제목'] = title2
+df['내용'] = cont2
+df['닉네임'] = nick2
+df['사이트'] = site2
+
+# txt 파일로 저장하기
+ff = open(ff_name, 'a', encoding='UTF-8')
+ff.write(str(title2))
+ff.write(str(cont2))
+ff.write(str(nick2))
+ff.write(str(site2))
+ff.close( )
+print("\n")
+print(" txt 파일 저장 경로: %s" %ff_name)  
+
+# csv 형태로 저장하기
+df.to_csv(fc_name, encoding="utf-8-sig")
+print(" csv 파일 저장 경로: %s" %fc_name)
+
+# 엑셀 형태로 저장하기
+df.to_excel(fx_name)
+print(" xls 파일 저장 경로: %s" %fx_name)
